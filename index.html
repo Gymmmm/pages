@@ -3,132 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>发送 USDT - Tron 网络</title>
+    <title>USDT 发送演示 - 安全 vs 诈骗（仅学习）</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        
         body {
-            font-family: "Microsoft YaHei", Arial, sans-serif;
-            background-color: #f5f5f5;
+            font-family: 'Roboto', "Microsoft YaHei", Arial, sans-serif;
+            background: #f8fafc;
             margin: 0;
-            padding: 20px;
-            color: #333;
+            padding: 0;
+            color: #1e2937;
+            min-height: 100vh;
         }
-        .container {
-            max-width: 420px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-        header {
-            background: linear-gradient(135deg, #26a69a, #00897b);
+        .demo-banner {
+            background: #16a34a;
             color: white;
             text-align: center;
-            padding: 20px 15px;
-        }
-        h1 {
-            margin: 0;
-            font-size: 22px;
-        }
-        .content {
-            padding: 20px;
-        }
-        .section {
-            margin-bottom: 25px;
-        }
-        label {
-            display: block;
+            padding: 10px;
             font-size: 15px;
-            margin-bottom: 8px;
-            color: #555;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 200;
         }
-        .address {
-            background: #f9f9f9;
+        .mode-switch {
+            background: #1e2937;
+            color: white;
             padding: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .mode-btn {
+            padding: 10px 20px;
+            border: none;
             border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .safe-btn { background: #16a34a; }
+        .phish-btn { background: #ef4444; }
+        
+        .container {
+            max-width: 460px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .nav {
+            background: #f1f5f9;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 15px;
+            color: #64748b;
+        }
+        header {
+            background: linear-gradient(135deg, #22d3ee, #06b6d4);
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+        }
+        h1 { margin: 0 0 8px 0; font-size: 26px; }
+        
+        .content { padding: 24px; }
+        .card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+        label { display: block; margin-bottom: 8px; font-weight: 500; color: #475569; }
+        .address-box {
+            background: white;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
             font-family: monospace;
             word-break: break-all;
-            border: 1px solid #ddd;
-            font-size: 14px;
+            font-size: 15px;
         }
-        input[type="text"], input[type="number"] {
+        input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .balance {
-            font-size: 14px;
-            color: #26a69a;
-            margin-top: 5px;
-        }
-        .fee {
-            background: #fff8e1;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 17px;
         }
         button {
             width: 100%;
-            padding: 15px;
-            background: #26a69a;
-            color: white;
-            border: none;
-            border-radius: 8px;
+            padding: 16px;
             font-size: 18px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 12px;
         }
-        button:hover {
-            background: #00897b;
+        .confirm-btn { background: #06b6d4; color: white; }
+        .connect-btn { background: #3b82f6; color: white; }
+        
+        .warning {
+            background: #fef3c7;
+            color: #b45309;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 14.5px;
+            line-height: 1.5;
         }
-        .note {
-            font-size: 13px;
-            color: #d32f2f;
-            margin-top: 20px;
-            text-align: center;
+        .phish-warning {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 2px solid #ef4444;
+        }
+        
+        /* 假弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 380px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1e2937;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>发送 USDT</h1>
-            <p>Tron 网络 (TRC20)</p>
+    <div class="demo-banner">仅供本地学习测试 · 安全 vs 诈骗演示 · 禁止公网使用</div>
+    
+    <div class="mode-switch">
+        <button class="mode-btn safe-btn" onclick="switchMode('safe')">安全模式</button>
+        <button class="mode-btn phish-btn" onclick="switchMode('phish')">诈骗演示模式</button>
+    </div>
+    
+    <div class="container" id="main-container">
+        <!-- 内容由 JS 动态切换，这里先放安全模式骨架 -->
+        <div class="nav" id="nav">TronLink 风格演示</div>
+        
+        <header id="header">
+            <h1 id="title">发送 USDT</h1>
+            <p id="subtitle">TRC20 · Tron 网络</p>
         </header>
         
-        <div class="content">
-            <div class="section">
-                <label>收款地址</label>
-                <div class="address">TVs1TTmpScP4AKLHMof8Ft8WeAQ4KGGzoZ</div>
-            </div>
-
-            <div class="section">
-                <label>转账金额 (USDT)</label>
-                <input type="number" placeholder="输入金额" value="100" step="0.01">
-                <div class="balance">可用: 加载中... USDT</div>
-            </div>
-
-            <div class="section">
-                <label>备注 (需支付 1 TRX)</label>
-                <input type="text" placeholder="请输入备注信息">
-            </div>
-
-            <div class="section fee">
-                <strong>矿工费</strong><br>
-                ≈ $1.5688<br>
-                4.746 TRX
-            </div>
-
-            <button onclick="alert('这是一个学习测试页面，没有实际转账功能。\n\n仅用于本地练习 HTML。')">确认转账</button>
-
-            <div class="note">
-                ⚠️ 这是一个仅供本地学习测试的静态 HTML 示例。<br>
-                请勿用于任何真实转账或部署到公网。
-            </div>
+        <div class="content" id="content">
+            <!-- 内容将由 JS 填充 -->
         </div>
     </div>
+
+    <!-- 假连接钱包弹窗 -->
+    <div class="modal" id="wallet-modal">
+        <div class="modal-content">
+            <div class="modal-header">连接钱包</div>
+            <p style="margin:12px 0; color:#475569;">选择钱包连接到此 dApp</p>
+            <div style="background:#f1f5f9; padding:14px; border-radius:10px; margin:15px 0; text-align:center; font-weight:500; color:#1e40af;">
+                TronLink
+            </div>
+            <button onclick="fakeConnect()" style="background:#3b82f6; color:white; width:100%; padding:14px; border:none; border-radius:10px; margin-bottom:12px;">连接 TronLink</button>
+            <button onclick="closeModal()" style="background:#e2e8f0; width:100%; padding:14px; border:none; border-radius:10px;">取消</button>
+            <p style="font-size:13px; color:#64748b; margin-top:20px; text-align:center;">
+                此操作将授予 dApp 查看余额和发起交易的权限
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const safeHTML = `
+            <div class="card">
+                <label>收款地址（请手动在官方钱包中输入）</label>
+                <div class="address-box">TVs1TTmpScP4AKLHMof8Ft8WeAQ4KGGzoZ</div>
+            </div>
+            <div class="card">
+                <label>转账金额 (USDT)</label>
+                <input type="number" value="300" step="0.01">
+            </div>
+            <button class="confirm-btn" onclick="safeAlert()">在官方钱包中确认转账</button>
+            <div class="warning">
+                ✅ <strong>安全操作提醒</strong><br>
+                • 始终在官方 TronLink / Trust Wallet App 内手动输入地址转账<br>
+                • 不要通过网页链接操作<br>
+                • 转账前完整核对地址所有字符
+            </div>
+        `;
+
+        const phishHTML = `
+            <div class="card">
+                <label>收款地址（看起来有点熟悉？）</label>
+                <div class="address-box">TVs1TTmpScP4AKLHMof8Ft8WeAQ4KGGzoZ <span style="color:#ef4444; font-size:12px;">（地址中毒常见手法）</span></div>
+            </div>
+            <div class="card">
+                <label>转账金额 (USDT)</label>
+                <input type="number" value="450" step="0.01">
+            </div>
+            <button class="connect-btn" onclick="showFakeWalletModal()">连接钱包确认转账</button>
+            <button class="confirm-btn" onclick="phishAlert(1)" style="background:#f59e0b;">使用 TRX 支付备注费并加速（紧急）</button>
+            <div class="warning phish-warning">
+                ⚠️ <strong>诈骗演示 - 常见陷阱</strong><br>
+                • 点击“连接钱包”后会弹出假窗口，诱导你授权 Approve（无限转账权限）<br>
+                • 真实诈骗常要求签名恶意合约，一授权 USDT 即可被随时转走<br>
+                • 地址后几位相似 + 紧急文字 + 假 AML / FBI 验证是高危信号<br>
+                • 最近真实案例：假 FBI token 空投诱导用户访问钓鱼网站提交信息
+            </div>
+        `;
+
+        function switchMode(mode) {
+            const content = document.getElementById('content');
+            const header = document.getElementById('header');
+            const nav = document.getElementById('nav');
+            
+            if (mode === 'safe') {
+                content.innerHTML = safeHTML;
+                header.style.background = 'linear-gradient(135deg, #22d3ee, #06b6d4)';
+                nav.textContent = '安全转账演示';
+                document.getElementById('title').textContent = '发送 USDT';
+                document.getElementById('subtitle').textContent = 'TRC20 · Tron 网络（官方建议方式）';
+            } else {
+                content.innerHTML = phishHTML;
+                header.style.background = 'linear-gradient(135deg, #f87171, #ef4444)';
+                nav.textContent = '诈骗页面演示（勿模仿）';
+                document.getElementById('title').textContent = 'USDT 发送确认';
+                document.getElementById('subtitle').textContent = 'Tron 网络 · 低手续费 · 快速到账';
+            }
+        }
+
+        function showFakeWalletModal() {
+            document.getElementById('wallet-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('wallet-modal').style.display = 'none';
+        }
+
+        function fakeConnect() {
+            closeModal();
+            alert("【诈骗演示】\n\n假钱包连接窗口已弹出。\n\n真实诈骗中这里会要求你：\n1. 签名交易（Approve USDT 无限授权）\n2. 或直接输入助记词/私钥\n\n一旦确认，骗子即可转走你的 USDT。\n\n正确做法：永不在网页上点击“连接钱包”！");
+        }
+
+        function safeAlert() {
+            alert("✅ 安全演示\n\n这是在官方钱包 App 中手动转账的正确方式。\n\n无网页授权、无 Approve 风险。");
+        }
+
+        function phishAlert(type) {
+            let msg = "【诈骗演示】\n\n";
+            if (type === 1) {
+                msg += "这是常见的‘支付额外费用加速’陷阱。\n\n真实诈骗常结合地址中毒 + 紧急倒计时 + 假费用诱导你操作，最终引导到 Approve 或输入私钥。\n\n2026 年 Tron 上仍有大量类似 USDT 钓鱼，FBI 也警告过假 token 诱导用户访问钓鱼网站。";
+            }
+            alert(msg);
+        }
+
+        // 默认启动安全模式
+        window.onload = () => switchMode('safe');
+    </script>
 </body>
 </html>
